@@ -186,8 +186,37 @@ function retry(func, attempts) {
  * cos(3.141592653589793) ends
  *
  */
-function logger(/* func, logFunc */) {
-  throw new Error('Not implemented');
+function logger(func, logFunc) {
+  const formatParam = (p) => {
+    let res = '';
+
+    if (Array.isArray(p)) {
+      res += '[';
+
+      res += p.map((v) => formatParam(v)).join(',');
+
+      res += ']';
+    }
+
+    if (typeof p === 'number') {
+      return p.toString();
+    }
+
+    if (typeof p === 'string') {
+      return `"${p}"`;
+    }
+
+    return res;
+  };
+
+  return (...args) => {
+    let paramsStr = structuredClone(args).map(formatParam).join(',');
+    logFunc(`${func.name}(${paramsStr}) starts`);
+    const res = func(...args);
+    paramsStr = structuredClone(args).map(formatParam).join(',');
+    logFunc(`${func.name}(${paramsStr}) ends`);
+    return res;
+  };
 }
 
 /**
@@ -204,8 +233,10 @@ function logger(/* func, logFunc */) {
  *   partialUsingArguments(fn, 'a','b','c')('d') => 'abcd'
  *   partialUsingArguments(fn, 'a','b','c','d')() => 'abcd'
  */
-function partialUsingArguments(/* fn, ...args */) {
-  throw new Error('Not implemented');
+function partialUsingArguments(fn, ...args) {
+  return (...params) => {
+    return fn(...args, ...params);
+  };
 }
 
 /**
@@ -225,8 +256,14 @@ function partialUsingArguments(/* fn, ...args */) {
  *   getId4() => 7
  *   getId10() => 11
  */
-function getIdGeneratorFunction(/* startFrom */) {
-  throw new Error('Not implemented');
+function getIdGeneratorFunction(startFrom) {
+  let counter = startFrom;
+
+  return () => {
+    const tmp = counter;
+    counter += 1;
+    return tmp;
+  };
 }
 
 module.exports = {
